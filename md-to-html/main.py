@@ -9,6 +9,19 @@ from frames.setting import Set
 from frames.util import color_pix
 from frames.work import Work
 
+import xml.etree.ElementTree as etree
+
+from markdown.extensions import Extension
+from markdown.extensions.attr_list import AttrListExtension
+from markdown.extensions.tables import TableExtension
+from markdown.extensions.fenced_code import FencedCodeExtension
+from markdown.extensions.sane_lists import SaneListExtension
+from markdown.extensions.toc import TocExtension
+from markdown.inlinepatterns import InlineProcessor
+from markdown.postprocessors import Postprocessor
+from markdown import markdown
+from PIL.Image import new as new_im
+from PIL.ImageDraw import ImageDraw
 
 class Main(QMainWindow):
     def __init__(self):
@@ -18,7 +31,7 @@ class Main(QMainWindow):
         self.color_actions = []
         font_id = QFontDatabase.addApplicationFont("files/iconfont.ttf")
         self.ico_font = QFont(QFontDatabase.applicationFontFamilies(font_id)[0], 30)
-        self.has_opened_file = 'default'
+        self.opened_file = 'default'
 
         self.frame_head = Head(self)
         self.frame_work = Work(self)
@@ -114,33 +127,32 @@ class Main(QMainWindow):
         if path[0]:
             with open(path[0], 'r', encoding='utf-8') as f:
                 self.frame_work.ipt.setPlainText(f.read())
-                self.has_opened_file = path[0]
+                self.opened_file = path[0]
 
     def new_md(self):
         if self.ask_save():
             return
         self.frame_work.ipt.setPlainText('新建成功,请输入md文档吧')
-        self.has_opened_file = 'new_file'
+        self.opened_file = 'new_file'
 
     def save_md(self):
-        if self.has_opened_file in ['new_file', 'default']:
+        if self.opened_file == 'new_file':
             f = QFileDialog.getSaveFileName(self, '新建MD文件', '', '*.md')
             if f[0]:
                 path = f[0]
             else:
                 return False
-        elif self.has_opened_file:
-            path = self.has_opened_file
+        elif self.opened_file:
+            path = self.opened_file
         else:
             return False
         with open(path, 'w', encoding='utf-8') as f:
             f.write(self.frame_work.ipt.toPlainText())
             QMessageBox.information(self, '成功', '保存完成!', QMessageBox.Ok)
-            self.has_opened_file = False
             return True
 
     def ask_save(self):
-        if self.has_opened_file:
+        if self.opened_file:
             r = QMessageBox.warning(self, "提醒", "是否保存当前文件?", QMessageBox.Ok | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if r == QMessageBox.Ok:
                 if not self.save_md():
