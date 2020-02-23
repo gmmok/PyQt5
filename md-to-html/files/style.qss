@@ -3,17 +3,20 @@
 }
 QMenuBar{
     background: theme;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: bold;
 }
 QMenuBar::item{
-    padding: 6px 18px;
+    padding: 4px 15px;
     background: #AA41EE;
     color: white;
     margin-right: 1px;
 }
 QMenuBar::item:open{
     background: #EE555B;
+}
+#choose_color::item:checked{
+    border: 1px solid black;
 }
 
 #head{
@@ -47,9 +50,13 @@ QMenuBar::item:open{
     height: 2.6rem;
     background: white;
 }
-#swt_html{
+#swt_md{
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
+    border-right: 1px solid black;
+}
+#swt_html{
+    border-radius: 0;
     border-right: 1px solid black;
 }
 #swt_pre{
@@ -61,6 +68,9 @@ QMenuBar::item:open{
 }
 #work{
 
+}
+#work QLabel{
+    background: theme;
 }
 QTextEdit{
     font-size: 1.1rem;

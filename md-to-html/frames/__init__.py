@@ -1,24 +1,34 @@
-from markdown.postprocessors import Postprocessor
-from markdown.inlinepatterns import InlineProcessor
-from markdown.extensions import Extension
 import xml.etree.ElementTree as etree
-from re import sub, search, DOTALL
+from re import sub
+
+from markdown.extensions import Extension
+from markdown.inlinepatterns import InlineProcessor
+from markdown.postprocessors import Postprocessor
 
 """
 Github式<h>
 """
 class AddHref(Postprocessor):
     def run(self, text):
-        self.count = 0
-        return sub(r'<h(\d)>(.*?)</h\1>', self.do_, text)
-
-    def do_(self, m):
-        self.count += 1
-        return "<h{0}><a id='{1}_{2}' href='#{1}_{2}'>{3}</a></h{0}>".format(m.group(1), sub('<.*?>', '', m.group(2)), self.count, m.group(2))
+        return sub(r'<h(\d) id=([\'"])(.*?)\2>(.*?)</h\1>', r"<h\1 id='\3'><a id='\3' href='#\3'>\4</a></h\1>", text)
 
 class AddHrefExt(Extension):
     def extendMarkdown(self, md):
         md.postprocessors.register(AddHref(), 'add_href', 175)
+
+"""
+<del>
+"""
+class DelTag(InlineProcessor):
+    def handleMatch(self, m, data):
+        p = etree.Element('del')
+        p.text = m.group(1)
+        return p, m.start(), m.end()
+
+class DelTagExt(Extension):
+    def extendMarkdown(self, md):
+        md.inlinePatterns.register(DelTag(r"\~\~(.*?)\~\~"), 'del_tag', 70)
+
 
 """
 自定义字体大小
@@ -34,4 +44,4 @@ class LargeFontExt(Extension):
     def extendMarkdown(self, md):
         md.inlinePatterns.register(LargeFont(r"(\$([\d.]*)￥)(.*?)\1"), 'large_font', 175)
 
-all_ext = [AddHrefExt(), LargeFontExt()]
+all_ext = [AddHrefExt(), LargeFontExt(), DelTagExt()]

@@ -1,10 +1,12 @@
 from json import load, dump
 from re import sub
+from webbrowser import open_new_tab
 
 from PyQt5.Qt import *
 
 from frames.head import Head
 from frames.setting import Set
+from frames.util import color_pix
 from frames.work import Work
 
 
@@ -13,6 +15,7 @@ class Main(QMainWindow):
         super(Main, self).__init__()
         self.conf, self.css = None, None
         self.menu = self.menuBar()
+        self.color_actions = []
         font_id = QFontDatabase.addApplicationFont("files/iconfont.ttf")
         self.ico_font = QFont(QFontDatabase.applicationFontFamilies(font_id)[0], 30)
         self.has_opened_file = 'default'
@@ -25,8 +28,8 @@ class Main(QMainWindow):
 
         desktop = QApplication.desktop().screenGeometry()
         size = self.conf['size']
-        self.setGeometry(int(desktop.width() / 2 - size[0] / 2), int(desktop.height() / 2 - size[1] / 2), size[0],
-                         size[1])
+        self.setGeometry(int(desktop.width() / 2 - size[0] / 2), int(desktop.height() / 2 - size[1] / 2), size[0], size[1])
+        self.setWindowTitle("md-to-html")
 
     def init(self):
         with open("files/conf.json", encoding="UTF-8") as f:
@@ -52,18 +55,24 @@ class Main(QMainWindow):
     def init_menu(self):
         file_menu = self.menu.addMenu('文件')
         set_menu = self.menu.addMenu('设置')
-        about_menu = self.menu.addMenu('关于')
-        for menu in [file_menu, set_menu, about_menu]:
+        about_action = self.menu.addAction('关于')
+        about_action.triggered.connect(lambda: open_new_tab('https://github.com/yunyuyuan/PyQt5/tree/master/md-to-html'))
+        for menu in [file_menu, set_menu]:
             menu.setCursor(Qt.PointingHandCursor)
         open_action = QAction('打开', self)
+        open_action.setIcon(QIcon('files/file.png'))
         open_action.triggered.connect(self.open_md)
         new_action = QAction('新建', self)
+        new_action.setIcon(QIcon('files/new.png'))
         new_action.triggered.connect(self.new_md)
         save_action = QAction('保存', self)
+        save_action.setIcon(QIcon('files/save.png'))
         save_action.triggered.connect(self.save_md)
         file_menu.addActions([open_action, new_action, save_action])
 
         choose_color = QMenu('主题', self)
+        choose_color.setObjectName('choose_color')
+        choose_color.setIcon(QIcon('files/theme.png'))
         white_theme = QAction('白色', self)
         white_theme.setProperty("color", "white")
         dark_theme = QAction('黑色', self)
@@ -72,10 +81,22 @@ class Main(QMainWindow):
         wheat_theme.setProperty("color", "wheat")
         for t in [white_theme, dark_theme, wheat_theme]:
             t.triggered.connect(self.choose_theme)
+            t.setCheckable(True)
+            color = self.conf['theme'][t.property('color')]
+            icon = QIcon()
+            icon.addPixmap(color_pix(color))
+            t.setIcon(icon)
             choose_color.addAction(t)
+            self.color_actions.append(t)
+            if self.conf['choose_theme'] == t.property('color'):
+                t.setChecked(True)
         set_menu.addMenu(choose_color)
         font_big = QAction("字体增", self)
+        font_big.setIcon(QIcon('files/big.png'))
+        font_big.setShortcut(QKeySequence.ZoomIn)
         font_sma = QAction("字体减", self)
+        font_sma.setIcon(QIcon('files/reduce.png'))
+        font_sma.setShortcut(QKeySequence.ZoomOut)
         for f in [font_big, font_sma]:
             f.triggered.connect(self.change_font)
             set_menu.addAction(f)
@@ -119,7 +140,7 @@ class Main(QMainWindow):
             return True
 
     def ask_save(self):
-        if self.has_opened_file != 'default' or self.frame_work.ipt.toPlainText():
+        if self.has_opened_file:
             r = QMessageBox.warning(self, "提醒", "是否保存当前文件?", QMessageBox.Ok | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if r == QMessageBox.Ok:
                 if not self.save_md():
@@ -136,6 +157,9 @@ class Main(QMainWindow):
 
     def choose_theme(self):
         self.conf["choose_theme"] = self.sender().property("color")
+        for c in self.color_actions:
+            if c is not self.sender():
+                c.setChecked(False)
         self.set_stylesheet()
         self.save_conf()
 

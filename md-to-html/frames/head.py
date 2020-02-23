@@ -12,11 +12,11 @@ class Head(QFrame):
         self.btn_list = [[0xe8f5, "h"],
                          [0xe60b, "b"],
                          [0xe60c, "i"],
-                         [0xe609, "del_"],
+                         [0xe929, "del_"],
                          [0xe790, "link"],
                          [0xebc5, "img"],
                          [0xe858, "code"],
-                         [0xe50c, "ul"],
+                         [0xe600, "ul"],
                          [0xe60d, "ol"],
                          [0xe683, "table"]]
         self.work_ipt = None
@@ -43,18 +43,18 @@ class Head(QFrame):
         f_layout.setSpacing(0)
         f_layout.setContentsMargins(0, 0, 0, 0)
         idx = 0
-        for b in ['html', '预览']:
+        for b in ['md', 'html', '预览']:
             btn = QPushButton(b, frm)
             f_layout.addWidget(btn, 0, idx)
             idx += 1
             btn.setCursor(Qt.PointingHandCursor)
             btn.clicked.connect(self.switch_frame)
-            if b == 'html':
-                btn.setProperty('class', 'active')
-                btn.setObjectName('swt_' + b)
-            else:
+            if b == '预览':
                 btn.setProperty('class', 'deactive')
                 btn.setObjectName('swt_pre')
+            else:
+                btn.setProperty('class', 'active')
+                btn.setObjectName('swt_' + b)
         frm.setLayout(f_layout)
         layout.addWidget(frm)
 
@@ -87,6 +87,8 @@ class Head(QFrame):
         el = self.sender()
         if el.text() == 'html':
             e = self.top.frame_work.html
+        elif el.text() == 'md':
+            e = self.top.frame_work.ipt
         else:
             e = self.top.frame_work.md
         e.setVisible((True if el.property('class') != 'active' else False))
