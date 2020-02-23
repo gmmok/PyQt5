@@ -10,7 +10,7 @@ Github式<h>
 """
 class AddHref(Postprocessor):
     def run(self, text):
-        return sub(r'<h(\d) id=([\'"])(.*?)\2>(.*?)</h\1>', r"<h\1 id='\3'><a id='\3' href='#\3'>\4</a></h\1>", text)
+        return sub(r'<h(\d) id=([\'"])(.*?)\2>(.*?)</h\1>', r"<h\1 id='\3'><a href='#\3'>\4</a></h\1>", text)
 
 class AddHrefExt(Extension):
     def extendMarkdown(self, md):
