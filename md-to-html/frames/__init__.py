@@ -21,13 +21,15 @@ class AddHrefExt(Extension):
 """
 class DelTag(InlineProcessor):
     def handleMatch(self, m, data):
+        if m.group(1) == '\\':
+            return '~~'+m.group(2)+'~~', m.start(), m.end()
         p = etree.Element('del')
-        p.text = m.group(1)
-        return p, m.start(), m.end()
+        p.text = m.group(2)
+        return p, m.start(1)+len(m.group(1)), m.end()
 
 class DelTagExt(Extension):
     def extendMarkdown(self, md):
-        md.inlinePatterns.register(DelTag(r"\~\~(.*?)\~\~"), 'del_tag', 70)
+        md.inlinePatterns.register(DelTag(r"(^|.)\~\~(.*?)\~\~"), 'del_tag', 70)
 
 
 """
@@ -42,6 +44,21 @@ class LargeFont(InlineProcessor):
 
 class LargeFontExt(Extension):
     def extendMarkdown(self, md):
-        md.inlinePatterns.register(LargeFont(r"(\$([\d.]*)￥)(.*?)\1"), 'large_font', 175)
+        md.inlinePatterns.register(LargeFont(r"(\$([\d.]*)\$)(.*?)\1"), 'large_font', 175)
 
-all_ext = [AddHrefExt(), LargeFontExt(), DelTagExt()]
+"""
+target=_blank
+"""
+class BlankLink(InlineProcessor):
+    def handleMatch(self, m, data):
+        p = etree.Element('a')
+        p.set('href', m.group(2))
+        p.set('target', '_blank')
+        p.text = m.group(1)
+        return p, m.start(), m.end()
+
+class BlankLinkExt(Extension):
+    def extendMarkdown(self, md):
+        md.inlinePatterns.register(BlankLink(r"#\[(.*?)\]\((.*?)\)"), 'blank_link', 165)
+
+all_ext = [AddHrefExt(), LargeFontExt(), DelTagExt(), BlankLinkExt()]
